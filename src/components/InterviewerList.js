@@ -9,15 +9,15 @@ export default function InterviewerList(props) {
     <section className="interviewers">
       <h4 className="interviewers__header text--light">Interviewer</h4>
       <ul className="interviewers__list">
-      {interviewers.map(interviwerPointer => 
-        <InterviewerListItem
-          key={interviwerPointer.id}
-          name={interviwerPointer.name}
-          avatar={interviwerPointer.avatar}
-          selected={interviwerPointer.id === interviewer}
-          setInterviewer={()=> setInterviewer(interviwerPointer.id)}
-        />
-      )}
+        {interviewers.map(interviewer => (
+          <InterviewerListItem
+            key={interviewer.id}
+            name={interviewer.name}
+            avatar={interviewer.avatar}
+            selected={interviewer.id === interviewer}
+            setInterviewer={() => setInterviewer(interviewer.id)}
+          />
+        ))}
       </ul>
     </section>
   );
