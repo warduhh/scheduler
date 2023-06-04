@@ -1,52 +1,10 @@
 import React, { useState, useEffect } from "react";
 import "components/Application.scss";
 import DayList from "./DayList";
-
 import "components/Appointment";
 import Appointment from "components/Appointment";
 import axios from "axios";
-
-
-
-const appointments = {
-  "1": {
-    id: 1,
-    time: "12pm",
-  },
-  "2": {
-    id: 2,
-    time: "1pm",
-    interview: {
-      student: "Lydia Miller-Jones",
-      interviewer: {
-        id: 3,
-        name: "Sylvia Palmer",
-        avatar: "https://i.imgur.com/LpaY82x.png",
-      }
-    }
-  },
-  "3": {
-    id: 3,
-    time: "2pm",
-  },
-  "4": {
-    id: 4,
-    time: "3pm",
-    interview: {
-      student: "Archie Andrews",
-      interviewer: {
-        id: 4,
-        name: "Cohana Roy",
-        avatar: "https://i.imgur.com/FK8V841.jpg",
-      }
-    }
-  },
-  "5": {
-    id: 5,
-    time: "4pm",
-  }
-};
-
+import { getAppointmentsForDay } from "helpers/selectors";
 
 export default function Application(props) {
 
@@ -56,22 +14,31 @@ export default function Application(props) {
     appointments: {},
   });
 
-
   const setDay = (day) => setState((prev) => ({ ...prev, day }));
-  const setDays = (days) => setState((prev) => ({ ...prev, days }));
 
-
-    //renders data for days (nav bar)
-    useEffect(() => {
-    axios
-      .get("/api/days")
-      .then((response) => {
-
-        setDays(response.data)
-        console.log(response.data)
-
+  useEffect(() => {
+    Promise.all([
+      axios.get("/api/days"),
+      axios.get("/api/appointments"),
+      axios.get("/api/interviewers"),
+    ])
+      .then((all) => {
+        // console.log(all);
+        // console.log(all[0]);
+        // console.log(all[1]);
+        // console.log(all[2]);
+        const [daysResponse, appointmentsResponse, interviewersResponse] = all;
+        setState((prev) => ({
+          ...prev,
+          days: daysResponse.data,
+          appointments: appointmentsResponse.data,
+          interviewers: interviewersResponse.data,
+        }));
+      })
+      .catch((error) => {
+        // console.log(error);
       });
-  });
+  }, []);
 
 
   return (
@@ -97,13 +64,13 @@ export default function Application(props) {
         />
       </section>
       <section className="schedule">
-        {Object.values(appointments).map(appointment =>
+
+        {getAppointmentsForDay(state, state.day).map((appointment) => (
           <Appointment
             key={appointment.id}
             {...appointment}
           />
-        )
-        }
+        ))}
       </section>
     </main>
   );
