@@ -4,7 +4,7 @@ import DayList from "./DayList";
 import "components/Appointment";
 import Appointment from "components/Appointment";
 import axios from "axios";
-import { getAppointmentsForDay } from "helpers/selectors";
+import { getAppointmentsForDay, getInterview, getInterviewersForDay,} from "helpers/selectors";
 
 export default function Application(props) {
 
@@ -40,6 +40,35 @@ export default function Application(props) {
       });
   }, []);
 
+  function bookInterview(id, interview) {
+    const appointment = {
+      ...state.appointments[id],
+      interview: { ...interview },
+    };
+
+
+    // Make a PUT request to update the appointment with the interview data
+    return axios
+      .put(`/api/appointments/${id}`, { interview })
+      .then(() => {
+        // Update the state with the new appointment
+        const appointments = {
+          ...state.appointments,
+          [id]: appointment,
+        };
+        setState((prev) => ({
+          ...prev,
+          appointments,
+        }));
+      })
+      .catch((error) => {
+        // Handle any errors that occur during the PUT request
+        console.error(error);
+      });
+  }
+
+   //to get the interviewers for the selected day
+  // const interviewers = getInterviewersForDay(state, state.day);
 
   return (
     <main className="layout">
@@ -65,12 +94,21 @@ export default function Application(props) {
       </section>
       <section className="schedule">
 
-        {getAppointmentsForDay(state, state.day).map((appointment) => (
-          <Appointment
-            key={appointment.id}
-            {...appointment}
-          />
-        ))}
+        {getAppointmentsForDay(state, state.day).map((appointment) => {
+          const interview = getInterview(state, appointment.interview);
+          const interviewersForDay = getInterviewersForDay(state, state.day);
+
+
+          return (
+            <Appointment
+              key={appointment.id}
+              id={appointment.id}
+              time={appointment.time}
+              interview={interview}
+              interviewers={interviewersForDay}
+            />
+          );
+        })}
       </section>
     </main>
   );
