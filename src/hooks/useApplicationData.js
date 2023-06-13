@@ -1,18 +1,47 @@
-import { useState, useEffect } from "react";
+import { useState, useReducer } from "react";
 import axios from "axios";
+import { getAppointmentsForDay } from "../helpers/selectors";
 
+const SET_DAY = "SET_DAY";
+const SET_APPLICATION_DATA = "SET_APPLICATION_DATA";
+const SET_INTERVIEW = "SET_INTERVIEW";
+const SET_SPOTS = "SET_SPOTS";
 
-export default function useApplicationData (){
+function reducer(state, action) {
+  switch (action.type) {
+    case SET_DAY:
+      return { ...state, day: action.day };
+    case SET_APPLICATION_DATA:
+      return {
+        ...state,
+        days: action.days,
+        appointments: action.appointments,
+        interviewers: action.interviewers,
+      };
+    case SET_INTERVIEW:
+      return { ...state, appointments: action.appointments };
 
-  const [state, setState] = useState({
+    case SET_SPOTS:
+      return { ...state, days: action.days, appointments: action.appointments };
+    default:
+      throw new Error(
+        `Tried to reduce with unsupported action type: ${action.type}`
+      );
+  }
+}
+
+export default function useApplicationData() {
+  const [state, dispatch] = useReducer(reducer, {
+
     day: "Monday",
     days: [],
     appointments: {},
     interviewers: {},
   });
-  console.log("state",state);
 
-  const setDay = (day) => setState((prev) => ({ ...prev, day }));
+  console.log("state:", state);
+
+  const setDay = (day) => dispatch({ type: SET_DAY, day });
 
   // hook to fetch data from the server
   //renders data for days (nav bar)
@@ -24,12 +53,12 @@ export default function useApplicationData (){
     ])
       .then((all) => {
         const [daysResponse, appointmentsResponse, interviewersResponse] = all;
-        setState((prev) => ({
-          ...prev,
+        dispatch({
+          type: SET_APPLICATION_DATA,
           days: daysResponse.data,
           appointments: appointmentsResponse.data,
           interviewers: interviewersResponse.data,
-        }));
+        });
       })
       .catch((error) => {
         // console.log(error);
@@ -49,10 +78,11 @@ export default function useApplicationData (){
         ...state.appointments,
         [id]: appointment,
       };
-      setState((prev) => ({
-        ...prev,
+      dispatch({
+        type: SET_INTERVIEW,
         appointments,
-      }));
+      });
+      updateSpots(appointments);// Update the spots when booking an interview
     });
   }
 
@@ -70,10 +100,11 @@ export default function useApplicationData (){
         ...state.appointments,
         [id]: appointment,
       };
-      setState((prev) => ({
-        ...prev,
+      dispatch({
+        type: SET_INTERVIEW,
         appointments,
-      }));
+      });
+      updateSpots(appointments);// Update the spots when deleting an interview
     });
   }
 
@@ -100,8 +131,33 @@ export default function useApplicationData (){
         console.log(error);
       });
   }
+  function updateSpots(appointments) {
+    console.log("Updating spots...", appointments);
+    // Retrieve the 'days' array from the state
+    const days = state.days.map((day) => {
+      // Calculate the number of spots for each day
+      const spots = getAppointmentsForDay(
+        { days: state.days, appointments },
+        day.name
+      ).reduce((count, appointment) => {
+        // Check if the appointment has a null interview
+        console.log("Appoint[id]:", appointments[appointment.id]);
+        console.log("apps", appointments);
+        console.log("ID", appointment.id);
+        if (appointments[appointment.id].interview === null) {
+          return count + 1; // Increment the count if the appointment has no interview
+        }
+        return count; // Keep the count as is if the appointment has an interview
+      }, 0); // Initial count value is 0
 
-   //to get the interviewers for the selected day
+      // Return a new object with the updated 'spots' value for the day
+      // console.log("Spots:",spots);
+      return { ...day, spots };
+    });
+
+    dispatch({ type: SET_SPOTS, days, appointments });
+  }
+  //to get the interviewers for the selected day
   // const interviewers = getInterviewersForDay(state, state.day);
 
   return {
@@ -111,4 +167,5 @@ export default function useApplicationData (){
     cancelInterview,
     editInterview,
   };
-}s
+}
+
