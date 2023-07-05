@@ -1,21 +1,24 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
+import axios from "axios";
+import { useState, useEffect } from "react";
 import "components/Application.scss";
 import DayList from "./DayList";
 import "components/Appointment";
 import Appointment from "components/Appointment";
-import axios from "axios";
-import { getAppointmentsForDay, getInterview, getInterviewersForDay,} from "helpers/selectors";
+import { getAppointmentsForDay, getInterview } from "helpers/selectors";
 
 export default function Application(props) {
-
   const [state, setState] = useState({
     day: "Monday",
     days: [],
     appointments: {},
+    interviewers: {},
   });
 
   const setDay = (day) => setState((prev) => ({ ...prev, day }));
 
+  // hook to fetch data from the server
+  //renders data for days (nav bar)
   useEffect(() => {
     Promise.all([
       axios.get("/api/days"),
@@ -40,36 +43,6 @@ export default function Application(props) {
       });
   }, []);
 
-  function bookInterview(id, interview) {
-    const appointment = {
-      ...state.appointments[id],
-      interview: { ...interview },
-    };
-
-
-    // Make a PUT request to update the appointment with the interview data
-    return axios
-      .put(`/api/appointments/${id}`, { interview })
-      .then(() => {
-        // Update the state with the new appointment
-        const appointments = {
-          ...state.appointments,
-          [id]: appointment,
-        };
-        setState((prev) => ({
-          ...prev,
-          appointments,
-        }));
-      })
-      .catch((error) => {
-        // Handle any errors that occur during the PUT request
-        console.error(error);
-      });
-  }
-
-   //to get the interviewers for the selected day
-  // const interviewers = getInterviewersForDay(state, state.day);
-
   return (
     <main className="layout">
       <section className="sidebar">
@@ -79,13 +52,12 @@ export default function Application(props) {
           alt="Interview Scheduler"
         />
         <hr className="sidebar__separator sidebar--centered" />
+
         <nav className="sidebar__menu">
-          <DayList
-            days={state.days}
-            day={state.day}
-            setDay={setDay}
-          />
+          {/* Passing day and days to <DayList> */}
+          <DayList days={state.days} day={state.day} setDay={setDay} />
         </nav>
+
         <img
           className="sidebar__lhl sidebar--centered"
           src="images/lhl.png"
@@ -93,11 +65,8 @@ export default function Application(props) {
         />
       </section>
       <section className="schedule">
-
         {getAppointmentsForDay(state, state.day).map((appointment) => {
           const interview = getInterview(state, appointment.interview);
-          const interviewersForDay = getInterviewersForDay(state, state.day);
-
 
           return (
             <Appointment
@@ -105,7 +74,6 @@ export default function Application(props) {
               id={appointment.id}
               time={appointment.time}
               interview={interview}
-              interviewers={interviewersForDay}
             />
           );
         })}
