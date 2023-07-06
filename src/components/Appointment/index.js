@@ -1,5 +1,5 @@
-import React from "react";
-import "components/Appointment/style.scss"
+import React, { useEffect } from "react";
+import "./style.scss";
 import Header from "./Header";
 import Show from "./Show";
 import Empty from "./Empty";
@@ -7,8 +7,7 @@ import Form from "./Form";
 import Status from "./Status";
 import useVisualMode from "../../hooks/useVisualMode";
 import Confirm from "./Confirm";
-
-
+import Error from "./Error";
 
 export default function Appointment(props) {
   const EMPTY = "EMPTY";
@@ -18,64 +17,69 @@ export default function Appointment(props) {
   const DELETING = "DELETING";
   const CONFIRMING = "CONFIRMING";
   const EDIT = "EDIT";
+  const ERROR_SAVE = "ERROR_SAVE";
+  const ERROR_DELETE = "ERROR_DELETE";
+
   const { mode, transition, back } = useVisualMode(
     props.interview ? SHOW : EMPTY
   );
 
+  useEffect(() => {
+    // Check if we are in the EMPTY mode with a truthy interview value
+    if (props.interview?.student) {
+      // If interview.student exists (truthy), transition to SHOW mode
+      transition(SHOW);
+    } else {
+      // If interview.student does not exist (falsy), transition to EMPTY mode
+      transition(EMPTY);
+    }
+    // Safe navigation using the optional chaining operator "?"
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.interview?.student]);
+
+  // Function to handle the saving of an appointment
   function save(name, interviewer) {
     const interview = {
       student: name,
       interviewer,
     };
 
-    transition(SAVING);
+    transition(SAVING); // Transition to SAVING mode
 
+    // Call the bookInterview function to make a PUT request and save the appointment with the interview data
     props
       .bookInterview(props.id, interview)
-      .then(() => {
-        transition(SHOW); // Transition to SHOW mode when the PUT request is complete
-      })
+      .then(() => transition(SHOW))
       .catch((error) => {
-        console.error(error); // Handle any errors that occur during the save operation
-      });
+        console.log("Error msg", error);
+        transition(ERROR_SAVE, true);
+      }); // Replace the SAVING mode with ERROR_SAVE in the history
   }
 
   function confirmDeletion() {
     transition(CONFIRMING);
   }
+
   // Function to handle the deletion of an appointment
   function deleting() {
-    transition(DELETING); // Transition to deleting mode
-    // Call the cancelInterview function to make a DELETE request and remove the interview data
+    transition(DELETING, true); // Transition to DELETING mode and replace the current mode
     props
       .cancelInterview(props.id)
-      .then(() => {
-        transition(EMPTY); // Transition back to EMPTY mode when the DELETE request is complete
-      })
-      .catch((error) => {
-        console.log(error); // Handle any error that occurs during the delete operation
-      });
+      .then(() => transition(EMPTY))
+      .catch((error) => transition(ERROR_DELETE, true)); // Transition to ERROR_DELETE mode and replace the current mode
   }
 
   // Function to edit an appointment
   function confirmEdit() {
-    transition(EDIT);// Transition to EDIT mode
-    // Call the editInterview function to make a PUT request and modify the interview data
-    props
-      .editInterview(props.id)
-      .then(() => {
-        transition(CREATE);// Transition back to CREATE mode
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    transition(EDIT); // Transition to EDIT mode
   }
 
   return (
-    <article className="appointment">
+    <article className="appointment" data-testid="appointment">
       <Header time={props.time} />
       {mode === EMPTY && <Empty onAdd={() => transition(CREATE)} />}
-      {mode === SHOW && (
+
+      {mode === SHOW && props.interview?.student && (
         <Show
           student={props.interview.student}
           interviewer={props.interview.interviewer}
@@ -98,7 +102,7 @@ export default function Appointment(props) {
           onSave={save}
           onCancel={() => back(SHOW)}
           name={props.interview.student}
-          interviewer={props.interview.interviewer}
+          interviewer={props.interview.interviewer.id}
         />
       )}
 
@@ -111,7 +115,20 @@ export default function Appointment(props) {
           onCancel={() => back(SHOW)}
         />
       )}
+
+      {mode === ERROR_DELETE && (
+        <Error
+          message="Error occurred while deleting the appointment"
+          onClose={() => back()}
+        />
+      )}
+
+      {mode === ERROR_SAVE && (
+        <Error
+          message="Error occurred while saving the appointment"
+          onClose={() => back()}
+        />
+      )}
     </article>
   );
 }
-
