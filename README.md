@@ -1,7 +1,7 @@
 # Interview Scheduler
 
-!["Add Appointment"](/https://github.com/warduhh/scheduler/blob/master/docs/Addappointment.jpeg/)
-!["Confirmed Appointment"](/https://github.com/warduhh/scheduler/blob/master/docs/ConfirmAppointment.jpeg/)
+!["Add Appointment"](https://github.com/warduhh/scheduler/blob/master/docs/Addappointment.jpeg)
+!["Confirmed Appointment"](https://github.com/warduhh/scheduler/blob/master/docs/ConfirmAppointment.jpeg)
 
 ## Feautures
 
