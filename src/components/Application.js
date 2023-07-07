@@ -1,48 +1,46 @@
+// import dependencies
 import React from "react";
-import axios from "axios";
-import { useState, useEffect } from "react";
 import "components/Application.scss";
 import DayList from "./DayList";
-import "components/Appointment";
-import Appointment from "components/Appointment";
-import { getAppointmentsForDay, getInterview } from "helpers/selectors";
+import Appointment from "./Appointment";
+import { getAppointmentsForDay, getInterview, getInterviewersForDay } from "helpers/selectors";
+import useApplicationData from "../hooks/useApplicationData";
 
-export default function Application(props) {
-  const [state, setState] = useState({
-    day: "Monday",
-    days: [],
-    appointments: {},
-    interviewers: {},
-  });
 
-  const setDay = (day) => setState((prev) => ({ ...prev, day }));
+export default function Application() {
 
-  // hook to fetch data from the server
-  //renders data for days (nav bar)
-  useEffect(() => {
-    Promise.all([
-      axios.get("/api/days"),
-      axios.get("/api/appointments"),
-      axios.get("/api/interviewers"),
-    ])
-      .then((all) => {
-        // console.log(all);
-        // console.log(all[0]);
-        // console.log(all[1]);
-        // console.log(all[2]);
-        const [daysResponse, appointmentsResponse, interviewersResponse] = all;
-        setState((prev) => ({
-          ...prev,
-          days: daysResponse.data,
-          appointments: appointmentsResponse.data,
-          interviewers: interviewersResponse.data,
-        }));
-      })
-      .catch((error) => {
-        // console.log(error);
-      });
-  }, []);
+  const {
+    state,
+    setDay,
+    bookInterview,
+    cancelInterview
+  } = useApplicationData();
 
+
+  // Data Selectors - helper functions are imported from Selectors module - send the state as an argument and return the interviewers and appointments for the selected day
+  const dailyInterviewers = getInterviewersForDay(state, state.day);
+  const dailyAppointments = getAppointmentsForDay(state, state.day);
+  
+  // The schedule reprsents the schedule of appointments for the selected day. Iterate over the dailyAppointments and create an Appointment component for each appointment.
+  const schedule = dailyAppointments.map((appointment) => {
+    // Data Selector - helper function imported from Selectors module, returns interview data to be passed down the the Appointment component as a prop.
+    const interview = getInterview(state, appointment.interview);
+    
+    return(
+        <Appointment
+          key={appointment.id} 
+          id={appointment.id}
+          time={appointment.time}
+          interview={interview}
+          interviewers={dailyInterviewers}
+          bookInterview={bookInterview}
+          cancelInterview={cancelInterview}
+        />
+    )
+  })
+
+
+  // Render component
   return (
     <main className="layout">
       <section className="sidebar">
@@ -52,12 +50,13 @@ export default function Application(props) {
           alt="Interview Scheduler"
         />
         <hr className="sidebar__separator sidebar--centered" />
-
         <nav className="sidebar__menu">
-          {/* Passing day and days to <DayList> */}
-          <DayList days={state.days} day={state.day} setDay={setDay} />
+          <DayList
+            days={state.days}
+            value={state.day}
+            onChange={setDay}
+          />
         </nav>
-
         <img
           className="sidebar__lhl sidebar--centered"
           src="images/lhl.png"
@@ -65,18 +64,11 @@ export default function Application(props) {
         />
       </section>
       <section className="schedule">
-        {getAppointmentsForDay(state, state.day).map((appointment) => {
-          const interview = getInterview(state, appointment.interview);
-
-          return (
-            <Appointment
-              key={appointment.id}
-              id={appointment.id}
-              time={appointment.time}
-              interview={interview}
-            />
-          );
-        })}
+        {schedule}
+        <Appointment 
+          key="last" 
+          time="5pm" 
+        />
       </section>
     </main>
   );
