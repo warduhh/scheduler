@@ -1,7 +1,6 @@
 # Interview Scheduler
 
-!["Add Appointment"](https://github.com/warduhh/scheduler/blob/master/docs/Addappointment.jpeg)
-!["Confirmed Appointment"](https://github.com/warduhh/scheduler/blob/master/docs/ConfirmAppointment.jpeg)
+A single page application that allows students to schedule interviews.
 
 ## Feautures
 
@@ -32,6 +31,8 @@
 
 Install dependencies with `npm install`.
 
+Clone the [scheduler-api](https://github.com/lighthouse-labs/scheduler-api) repository.
+
 ## Running Webpack Development Server
 
 ```sh
@@ -49,3 +50,8 @@ npm test
 ```sh
 npm run storybook
 ```
+
+## Scheduler Preview
+
+!["Add Appointment"](https://github.com/warduhh/scheduler/blob/master/docs/Addappointment.jpeg)
+!["Confirmed Appointment"](https://github.com/warduhh/scheduler/blob/master/docs/ConfirmAppointment.jpeg)
