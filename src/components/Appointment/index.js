@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import "./style.scss";
 import Header from "./Header";
 import Show from "./Show";
@@ -24,54 +24,38 @@ export default function Appointment(props) {
     props.interview ? SHOW : EMPTY
   );
 
-  useEffect(() => {
-    // Check if we are in the EMPTY mode with a truthy interview value
-    if (props.interview?.student) {
-      // If interview.student exists (truthy), transition to SHOW mode
-      transition(SHOW);
-    } else {
-      // If interview.student does not exist (falsy), transition to EMPTY mode
-      transition(EMPTY);
-    }
-    // Safe navigation using the optional chaining operator "?"
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.interview?.student]);
-
-  // Function to handle the saving of an appointment
   function save(name, interviewer) {
     const interview = {
       student: name,
       interviewer,
     };
 
-    transition(SAVING); // Transition to SAVING mode
-
-    // Call the bookInterview function to make a PUT request and save the appointment with the interview data
+    transition(SAVING); 
     props
       .bookInterview(props.id, interview)
       .then(() => transition(SHOW))
       .catch((error) => {
         console.log("Error msg", error);
         transition(ERROR_SAVE, true);
-      }); // Replace the SAVING mode with ERROR_SAVE in the history
+      }); 
   }
 
   function confirmDeletion() {
     transition(CONFIRMING);
   }
 
-  // Function to handle the deletion of an appointment
+  
   function deleting() {
-    transition(DELETING, true); // Transition to DELETING mode and replace the current mode
+    transition(DELETING, true); 
     props
       .cancelInterview(props.id)
       .then(() => transition(EMPTY))
-      .catch((error) => transition(ERROR_DELETE, true)); // Transition to ERROR_DELETE mode and replace the current mode
+      .catch((error) => transition(ERROR_DELETE, true)); 
   }
 
-  // Function to edit an appointment
+  
   function confirmEdit() {
-    transition(EDIT); // Transition to EDIT mode
+    transition(EDIT); 
   }
 
   return (

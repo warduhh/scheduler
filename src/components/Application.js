@@ -17,13 +17,13 @@ export default function Application() {
   } = useApplicationData();
 
 
-  // Data Selectors - helper functions are imported from Selectors module - send the state as an argument and return the interviewers and appointments for the selected day
+
   const dailyInterviewers = getInterviewersForDay(state, state.day);
   const dailyAppointments = getAppointmentsForDay(state, state.day);
   
-  // The schedule reprsents the schedule of appointments for the selected day. Iterate over the dailyAppointments and create an Appointment component for each appointment.
+ 
   const schedule = dailyAppointments.map((appointment) => {
-    // Data Selector - helper function imported from Selectors module, returns interview data to be passed down the the Appointment component as a prop.
+   
     const interview = getInterview(state, appointment.interview);
     
     return(
@@ -40,7 +40,7 @@ export default function Application() {
   })
 
 
-  // Render component
+
   return (
     <main className="layout">
       <section className="sidebar">

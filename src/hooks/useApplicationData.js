@@ -15,8 +15,7 @@ export default function useApplicationData (){
 
   const setDay = (day) => setState((prev) => ({ ...prev, day }));
 
-  // hook to fetch data from the server
-  //renders data for days (nav bar)
+  
   useEffect(() => {
     Promise.all([
       axios.get("/api/days"),
@@ -43,9 +42,8 @@ export default function useApplicationData (){
       interview: { ...interview },
     };
 
-    // Make a PUT request to update the appointment with the interview data
     return axios.put(`/api/appointments/${id}`, { interview }).then(() => {
-      // Update the state with the new appointment
+
       const appointments = {
         ...state.appointments,
         [id]: appointment,
@@ -59,15 +57,12 @@ export default function useApplicationData (){
   }
 
   function cancelInterview(id) {
-    // Update the appointment's interview data to null
     const appointment = {
       ...state.appointments[id],
       interview: null,
     };
 
-    //Make a DELETE request to remove the interview data from the server
     return axios.delete(`/api/appointments/${id}`).then(() => {
-      //Update the state with the modified appointment
       const appointments = {
         ...state.appointments,
         [id]: appointment,
@@ -86,7 +81,7 @@ export default function useApplicationData (){
       interview: null,
     };
 
-    //Make a PUT request to edit the interview data on the server
+  
     return axios
       .put(`/api/appointments/${id}`)
       .then(() => {
@@ -106,13 +101,10 @@ export default function useApplicationData (){
 
   function updateSpots(appointments) {
     console.log("Updating spots...", appointments);
-    // Retrieve the 'days' array from the state
     const days = state.days.map((day) => {
-      // Calculate the number of spots for each day
       const spots = getAppointmentsForDay({ days: state.days, appointments }, day.name).reduce(
 
         (count, appointment) => {
-          // Check if the appointment has a null interview
           console.log("Appoint[id]:", appointments[appointment.id]);
           console.log("apps", appointments);
           console.log("ID",appointment.id);
